@@ -1,0 +1,221 @@
+import math
+
+''' #input
+10
+95.0129 61.5432
+23.1139 79.1937
+60.6843 92.1813
+48.5982 73.8207
+89.1299 17.6266
+76.2097 40.5706
+45.6468 93.5470
+1.8504 91.6904
+82.1407 41.0270
+44.4703 89.3650
+'''
+
+''' #optinput
+7
+100.00 200.00
+200.00 200.00
+300.00 180.00
+350.00 150.00
+250.00 100.00
+150.00 100.00
+100.00 100.00
+'''
+# Create adjacency matrix
+#Swap 2 edges from x1,y1;x2,y2 to x1,y2;x2,y1 (or something like that) output a full tour with the swap made
+def optSwap (tour, i, k): #seems to work, not pretty though
+    # print "old tour:", tour
+    #print "before:", tour, calc_tour_length(tour)
+    start = tour[:i+1]  # , i
+    mid = list(reversed(tour[i+1:k+1]))  # , k, i #reverse this array somehow and it's done...
+    #print mid
+    end = tour[k+1:]  # , k
+    for i in mid:
+        start.append(i)
+    for i in end:
+        start.append(i)
+    # print "start:", start, "tour: ", tour
+    #print "after:",start, calc_tour_length(start)
+    return start
+    # print "new tour:", start
+
+# define function to compute euclidian distance for 2 points
+def dist(c1,c2):
+#    return int(math.floor(math.sqrt(math.pow(c1[0]-c2[0], 2)+math.pow(c1[1]-c2[1],2)))) # TODO: round up
+    return int(round(math.sqrt(math.pow(c1[0]-c2[0], 2)+math.pow(c1[1]-c2[1],2)))) # TODO: round up
+
+
+def calc_tour_length (tour):
+    #tour.append(tour[0])  # TODO: FUCKING DELETE THIS
+    sum_length = 0
+    for i in range(0,len(tour)-1):
+        # print i
+        sum_length += mat[tour[i]][tour[i+1]]
+    #sum_length += mat[tour[i+1]][tour[0]] #adds the final point to make a cycle
+    return sum_length
+
+#read data
+coords = []
+n = int(raw_input())
+for x in range(0, n):
+    line = raw_input()
+    splitline = line.split(" ")
+    coords.append([float(splitline[0]), float(splitline[1]), x])
+
+mat = range(0, n)
+
+# Populate adjacency matrix (simple)
+for i in range(0, n):
+    row = []
+    for j in range(0, n):
+        row.append(dist(coords[i], coords[j]))
+
+    mat[i] = row
+
+'''
+# Print adjacency matrix #debug
+for i in range(0, n):
+    print mat[i]
+'''
+
+
+#################
+# Nearest Neighbour
+#################
+
+
+tour = [0]  # init tour (output)
+del coords[0]  # TODO: delete # remove index 0 as we won't have to compute distance to index 0 anymore (I guess this can happen faster)
+best = 1000000000
+currentpoint = 0
+
+for i in range(0, n-1):  # for every row in matrix
+    for j in range(0, n):  # for every col in row (every distance of every edge adjacent to the vertex the row represents)
+        if j not in tour and mat[currentpoint][j] != 0: # TODO: store tour in dictionary (hashmap)
+            # print j
+            if best > mat[currentpoint][j]:
+                best = mat[currentpoint][j]
+                bestind = j
+
+    tour.append(bestind)
+    # print tour #debug
+    currentpoint = bestind
+    best = 1000000
+
+
+#tour = [0,1,4,3,2,5,6] # For debugging purposes. # TODO: for some reason I have to hard copy this tour and stuff for it to work
+#new_tour = [0,1,4,3,2,5,6]
+#print "old tour length:", calc_tour_length(tour)
+#tour = [0,1,2,3,4,5,6,7,8,9]
+tour.append(0)  # this is a debug to see if including the path from final point to starting point will improve 2-opt
+#print calc_tour_length(tour)
+# Print length before optimizing
+# print calc_tour_length(tour)
+
+#######################
+#2-opt:
+#######################
+
+minchange = -5
+#do:
+#print tour
+for k in range(0, 42): #TODO: Should be a while loop running until no more minchange = 0.
+
+
+    minchange = 0
+    for i in range(0, n-2):
+
+        for j in range(i+2, n):
+
+            #print j+1
+            #change = mat[i][j] + mat[i+1][j+1] - mat[i][i+1] - mat[j][j+1]
+            change = mat[tour[i]][tour[j]] + mat[tour[i+1]][tour[j+1]] - mat[tour[i]][tour[i+1]] - mat[tour[j]][tour[j+1]]
+            if minchange > change:
+                #print "t[i],t[j]", tour[j], tour[i]
+                #print "i,j", i, j
+                minchange = change
+                mini = i
+                minj = j
+                #print tour
+    if minchange != 0:
+        tour = optSwap(tour, mini, minj)
+                #print tour
+                #Shouldn't swap be here?
+#            else:
+
+    #2OPTswap on mini minj
+
+
+#while
+
+#print tour
+#print calc_tour_length(tour)
+
+for i in range(0,n):
+    print tour[i]
+#######################
+#2-opt:
+#######################
+#print mat[tour[0]][tour[4]]+mat[tour[4]][tour[8]]+mat[tour[8]][tour[5]]
+#print mat[tour[0]][tour[8]]+mat[tour[8]][tour[4]]+mat[tour[4]][tour[5]]
+
+#TODO: clean up code, make 2-OPT a function which is called until we have converged (or which is run x times.
+#TODO: add outer loop which runs until we converge to a distance (i.e. there are no more optimizations available)
+# for z in range(0,100):
+
+'''
+
+for i in range(0, n-2):
+    currentedge = mat[tour[i]][tour[i+1]]
+    best_distance = calc_tour_length(tour)
+    for k in range(i+2, n-1):  # for loop running from edges starting AFTER the one I'm comparing with
+
+        edgetocompare = mat[tour[k]][tour[k+1]]
+        permutedtour1 = mat[tour[i]][tour[k+1]]  # TODO: change name to permuted_edge_1
+        permutedtour2 = mat[tour[k]][tour[i+1]]  # TODO: change name to permuted_edge_2
+        new_tour = optSwap(tour, i, k) # TODO: change 1 to i.
+        new_distance = calc_tour_length(new_tour)
+
+        if new_distance < best_distance:
+            #print new_tour, tour, i, i+1, k, k+1
+            tour = new_tour
+
+    #print i,k,k+1
+
+for i in tour:
+    print i
+
+'''
+
+# print length after optimizing
+# print calc_tour_length(tour)
+
+'''
+# pseudocode from wiki
+   2optSwap(route, i, k) {
+       1. take route[1] to route[i-1] and add them in order to new_route
+       2. take route[i] to route[k] and add them in reverse order to new_route
+       3. take route[k+1] to end and add them in order to new_route
+       return new_route;
+   }
+'''
+'''
+# pseudocode from wiki
+   repeat until no improvement is made { #del
+       start_again: # del
+       best_distance = calculateTotalDistance(existing_route) #may not be necessary? but function is there
+       for (i = 0; i < number of nodes eligible to be swapped - 1; i++) {
+           for (k = i + 1; k < number of nodes eligible to be swapped; k++) {
+               new_route = 2optSwap(existing_route, i, k)
+               new_distance = calculateTotalDistance(new_route)
+               if (new_distance < best_distance) {
+                   existing_route = new_route
+                   goto start_again
+               }
+           }
+       }
+   }
+'''
