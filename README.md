@@ -1,2 +1,2 @@
-# DD2440
+# Advanced Algorithms
 Advanced Algorithms at KTH
